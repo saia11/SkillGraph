@@ -1,0 +1,237 @@
+// SkillGraph Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid()) @db.Uuid
+  email      String   @unique
+  passwordHash String @map("password_hash")
+  name       String
+  bio        String?
+  avatarUrl  String?  @map("avatar_url")
+  role       UserRole @default(MEMBER)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  createdTeams     Team[]               @relation("TeamCreator")
+  teamMemberships  TeamMember[]
+  createdSkills    Skill[]              @relation("SkillCreator")
+  createdProjects  Project[]            @relation("ProjectCreator")
+  createdEdges     Edge[]               @relation("EdgeCreator")
+  comments         Comment[]
+  learningPaths    LearningPath[]
+
+  @@map("users")
+}
+
+model Team {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  createdBy   String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  creator  User           @relation("TeamCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  members  TeamMember[]
+  projects Project[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String           @id @default(uuid()) @db.Uuid
+  teamId   String           @map("team_id") @db.Uuid
+  userId   String           @map("user_id") @db.Uuid
+  role     TeamMemberRole   @default(MEMBER)
+  joinedAt DateTime         @default(now()) @map("joined_at") @db.Timestamptz
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model Skill {
+  id             String  @id @default(uuid()) @db.Uuid
+  name           String  @unique
+  category       String?
+  difficultyLevel Int?   @map("difficulty_level")
+  description    String?
+  createdBy      String? @map("created_by") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  creator          User?              @relation("SkillCreator", fields: [createdBy], references: [id])
+  learningPaths    LearningPath[]     @relation("TargetSkill")
+  learningPathSteps LearningPathStep[]
+
+  @@map("skills")
+}
+
+model Project {
+  id          String        @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  teamId      String?       @map("team_id") @db.Uuid
+  createdBy   String        @map("created_by") @db.Uuid
+  status      ProjectStatus @default(PLANNING)
+  startDate   DateTime?     @map("start_date") @db.Date
+  endDate     DateTime?     @map("end_date") @db.Date
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  team    Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  creator User  @relation("ProjectCreator", fields: [createdBy], references: [id])
+
+  @@map("projects")
+}
+
+model Edge {
+  id               String           @id @default(uuid()) @db.Uuid
+  sourceId         String           @map("source_id") @db.Uuid
+  targetId         String           @map("target_id") @db.Uuid
+  sourceType       NodeType         @map("source_type")
+  targetType       NodeType         @map("target_type")
+  relationshipType RelationshipType @map("relationship_type")
+  strength         Decimal?         @db.Decimal(3, 2)
+  metadata         Json?            @db.JsonB
+  createdBy        String           @map("created_by") @db.Uuid
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  creator  User      @relation("EdgeCreator", fields: [createdBy], references: [id])
+  comments Comment[]
+
+  @@map("edges")
+}
+
+model Comment {
+  id        String    @id @default(uuid()) @db.Uuid
+  content   String
+  userId    String    @map("user_id") @db.Uuid
+  edgeId    String?   @map("edge_id") @db.Uuid
+  nodeId    String?   @map("node_id") @db.Uuid
+  nodeType  NodeType? @map("node_type")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  edge Edge? @relation(fields: [edgeId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model LearningPath {
+  id            String           @id @default(uuid()) @db.Uuid
+  userId        String           @map("user_id") @db.Uuid
+  title         String
+  description   String?
+  targetSkillId String           @map("target_skill_id") @db.Uuid
+  status        LearningPathStatus @default(ACTIVE)
+  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetSkill Skill               @relation("TargetSkill", fields: [targetSkillId], references: [id])
+  steps       LearningPathStep[]
+
+  @@map("learning_paths")
+}
+
+model LearningPathStep {
+  id        String                @id @default(uuid()) @db.Uuid
+  pathId    String                @map("path_id") @db.Uuid
+  skillId   String                @map("skill_id") @db.Uuid
+  stepOrder Int                   @map("step_order")
+  status    LearningPathStepStatus @default(PENDING)
+  createdAt DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  path  LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  skill Skill        @relation(fields: [skillId], references: [id])
+
+  @@unique([pathId, stepOrder])
+  @@map("learning_path_steps")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  MEMBER
+  GUEST
+
+  @@map("user_role")
+}
+
+enum TeamMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+
+  @@map("team_member_role")
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+
+  @@map("project_status")
+}
+
+enum NodeType {
+  USER
+  SKILL
+  PROJECT
+
+  @@map("node_type")
+}
+
+enum RelationshipType {
+  KNOWS
+  WANTS_TO_LEARN
+  TEACHING
+  REQUIRES
+  PROVIDES
+  COLLABORATES_ON
+  LEADS
+  PARTICIPATES_IN
+  DEPENDS_ON
+
+  @@map("relationship_type")
+}
+
+enum LearningPathStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+
+  @@map("learning_path_status")
+}
+
+enum LearningPathStepStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+
+  @@map("learning_path_step_status")
+}

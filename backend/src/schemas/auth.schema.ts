@@ -5,6 +5,8 @@ export interface CreateUserRequest {
   password: string;
   name: string;
   bio?: string;
+  avatar_url?: string;
+  role?: 'admin' | 'member' | 'guest';
 }
 
 export interface LoginRequest {
