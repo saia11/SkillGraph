@@ -1,5 +1,9 @@
 import { Pool, PoolClient } from 'pg';
 import { DatabaseConfig } from '@/dto';
+// Use global process object (available in Node.js)
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 class DatabaseConnection {
   private pool: Pool;
@@ -22,7 +26,7 @@ class DatabaseConnection {
     });
 
     // Handle pool errors
-    this.pool.on('error', (err) => {
+    this.pool.on('error', (err: Error) => {
       console.error('Unexpected error on idle client', err);
     });
 
@@ -87,10 +91,6 @@ class DatabaseConnection {
 
   // Initialize database with schema
   public async initializeSchema(): Promise<void> {
-    const { readFileSync } = await import('fs');
-    const { join, dirname } = await import('path');
-    const { fileURLToPath } = await import('url');
-    
     try {
       // Get current file directory in ESM
       const __filename = fileURLToPath(import.meta.url);
