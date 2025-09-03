@@ -7,7 +7,7 @@ class PrismaClientSingleton {
 
     public prisma: PrismaClient;
 
-   constructor() {
+    constructor() {
     this.prisma = new PrismaClient().$extends(withAccelerate());
   }
 }

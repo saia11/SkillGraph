@@ -11,7 +11,7 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(uuid()) @db.Uuid
+  id         String   @id
   email      String   @unique
   passwordHash String @map("password_hash")
   name       String
@@ -37,7 +37,7 @@ model Team {
   id          String   @id @default(uuid()) @db.Uuid
   name        String
   description String?
-  createdBy   String   @map("created_by") @db.Uuid
+  createdBy   String   @map("created_by")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -52,7 +52,7 @@ model Team {
 model TeamMember {
   id       String           @id @default(uuid()) @db.Uuid
   teamId   String           @map("team_id") @db.Uuid
-  userId   String           @map("user_id") @db.Uuid
+  userId   String           @map("user_id")
   role     TeamMemberRole   @default(MEMBER)
   joinedAt DateTime         @default(now()) @map("joined_at") @db.Timestamptz
 
@@ -70,7 +70,7 @@ model Skill {
   category       String?
   difficultyLevel Int?   @map("difficulty_level")
   description    String?
-  createdBy      String? @map("created_by") @db.Uuid
+  createdBy      String? @map("created_by")
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   // Relations
@@ -86,7 +86,7 @@ model Project {
   title       String
   description String?
   teamId      String?       @map("team_id") @db.Uuid
-  createdBy   String        @map("created_by") @db.Uuid
+  createdBy   String        @map("created_by")
   status      ProjectStatus @default(PLANNING)
   startDate   DateTime?     @map("start_date") @db.Date
   endDate     DateTime?     @map("end_date") @db.Date
@@ -102,14 +102,14 @@ model Project {
 
 model Edge {
   id               String           @id @default(uuid()) @db.Uuid
-  sourceId         String           @map("source_id") @db.Uuid
-  targetId         String           @map("target_id") @db.Uuid
+  sourceId         String           @map("source_id")
+  targetId         String           @map("target_id")
   sourceType       NodeType         @map("source_type")
   targetType       NodeType         @map("target_type")
   relationshipType RelationshipType @map("relationship_type")
   strength         Decimal?         @db.Decimal(3, 2)
   metadata         Json?            @db.JsonB
-  createdBy        String           @map("created_by") @db.Uuid
+  createdBy        String           @map("created_by")
   createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -123,9 +123,9 @@ model Edge {
 model Comment {
   id        String    @id @default(uuid()) @db.Uuid
   content   String
-  userId    String    @map("user_id") @db.Uuid
+  userId    String    @map("user_id")
   edgeId    String?   @map("edge_id") @db.Uuid
-  nodeId    String?   @map("node_id") @db.Uuid
+  nodeId    String?   @map("node_id")
   nodeType  NodeType? @map("node_type")
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
@@ -139,7 +139,7 @@ model Comment {
 
 model LearningPath {
   id            String           @id @default(uuid()) @db.Uuid
-  userId        String           @map("user_id") @db.Uuid
+  userId        String           @map("user_id")
   title         String
   description   String?
   targetSkillId String           @map("target_skill_id") @db.Uuid

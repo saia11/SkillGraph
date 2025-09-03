@@ -5,7 +5,7 @@ export interface CreateUserRequest {
   password: string;
   name: string;
   bio?: string;
-  avatar_url?: string;
+  avatarUrl?: string;
   role?: 'admin' | 'member' | 'guest';
 }
 
@@ -21,7 +21,7 @@ export interface RefreshTokenRequest {
 export interface UpdateUserProfileRequest {
   name?: string;
   bio?: string;
-  avatar_url?: string;
+  avatarUrl?: string;
 }
 
 export interface UpdatePasswordRequest {

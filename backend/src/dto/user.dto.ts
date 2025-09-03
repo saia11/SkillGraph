@@ -5,19 +5,19 @@ export interface User {
   email: string;
   name: string;
   bio?: string;
-  avatar_url?: string;
+  avatarUrl?: string;
   role: 'admin' | 'member' | 'guest';
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface UserWithPassword extends User {
   password_hash: string;
 }
 
-export interface UserProfile extends Omit<User, 'created_at' | 'updated_at'> {
-  created_at: string;
-  updated_at: string;
+export interface UserProfile extends Omit<User, 'createdAt' | 'updatedAt'> {
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AuthResponse {
