@@ -10,7 +10,9 @@ class UserController {
     }
 
     async createUser(req: Request, res: Response): Promise<void> {
-       const user = await this.userService.createUser(req.body);
+        const userId = req.user!.uid;
+    
+       const user = await this.userService.createUser(userId, req.body);
        res.json(user)
     }
     

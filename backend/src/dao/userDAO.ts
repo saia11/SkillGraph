@@ -10,14 +10,14 @@ class UserDAO {
     this.prismaClient = Container.get(PrismaClientSingleton);
   }
 
-  async create(userData: CreateUserRequest & { passwordHash: string }): Promise<User> {
-    const { id, email, name, bio, avatarUrl, role, passwordHash } = userData;
+  async create(userId: string, userData: CreateUserRequest): Promise<User> {
+    const { email, name, bio, avatarUrl, role, password } = userData;
     
     const user = await this.prismaClient.prisma.user.create({
       data: {
-        id,
+        id: userId,
         email,
-        passwordHash,
+        password,
         name,
         bio,
         avatarUrl,
@@ -153,94 +153,6 @@ class UserDAO {
     });
   }
 
-  async findMany(
-    page: number = 1,
-    limit: number = 20
-  ): Promise<{ users: User[]; total: number }> {
-    const skip = (page - 1) * limit;
-
-    const [users, total] = await Promise.all([
-      this.prismaClient.prisma.user.findMany({
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          bio: true,
-          avatarUrl: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prismaClient.prisma.user.count(),
-    ]);
-
-    return {
-      users: users.map((user: User) => ({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        bio: user.bio,
-        avatarUrl: user.avatarUrl,
-        role: user.role.toLowerCase() as 'admin' | 'member' | 'guest',
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      })),
-      total,
-    };
-  }
-
-  async search(
-    searchTerm: string,
-    page: number = 1,
-    limit: number = 20
-  ): Promise<{ users: User[]; total: number }> {
-    const skip = (page - 1) * limit;
-
-    const where = {
-      OR: [
-        { name: { contains: searchTerm, mode: 'insensitive' as const } },
-        { email: { contains: searchTerm, mode: 'insensitive' as const } },
-      ],
-    };
-
-    const [users, total] = await Promise.all([
-      this.prismaClient.prisma.user.findMany({
-        where,
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          bio: true,
-          avatarUrl: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prismaClient.prisma.user.count({ where }),
-    ]);
-
-    return {
-      users: users.map((user: User) => ({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        bio: user.bio,
-        avatarUrl: user.avatarUrl,
-        role: user.role.toLowerCase() as 'admin' | 'member' | 'guest',
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      })),
-      total,
-    };
-  }
 
   async checkEmailExists(email: string): Promise<boolean> {
     const count = await this.prismaClient.prisma.user.count({
@@ -249,12 +161,12 @@ class UserDAO {
     return count > 0;
   }
 
-  async getPasswordHash(id: string): Promise<string | null> {
+  async getPasswordHash(id: string): Promise<string> {
     const user = await this.prismaClient.prisma.user.findUnique({
       where: { id },
       select: { passwordHash: true },
     });
-    return user?.passwordHash || null;
+    return user.passwordHash;
   }
 }
 

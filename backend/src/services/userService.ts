@@ -12,8 +12,8 @@ class UserService {
     this.userDAO = Container.get(UserDAO);
   }
 
-  public async createUser(userData: CreateUserRequest): Promise<User> {
-    const { email, password, name, bio, avatarUrl, role } = userData;
+  public async createUser(userId: string, userData: CreateUserRequest): Promise<User> {
+    const { email } = userData;
 
     // Check if user already exists should be enought to check if user exists
     const emailExists = await this.userDAO.checkEmailExists(email);
@@ -21,35 +21,13 @@ class UserService {
       throw new Error('User with this email already exists');
     }
 
-    const user = await admin.auth().createUser({
-      email,
-      password,
-      displayName: name,
-      photoURL: avatarUrl,
-    });
-  
-
     try {
-
-      const passwordHash = await Bcrypt.hash(password, 10);
-
-      return await this.userDAO.create({
-        id: user.uid,
-        email,
-        password: passwordHash,
-        name,
-        bio,
-        avatarUrl,
-        role,
-      });
-
+      return await this.userDAO.create(userId, userData);
     } catch (error) {
-        if (user) {
-          await admin.auth().deleteUser(user.uid);
-        }
-        throw new Error('Failed to create user');
+      throw new Error('Failed to create user');
+    }
 
-      }
+
   }
 
   public async findById(id: string): Promise<User> {
