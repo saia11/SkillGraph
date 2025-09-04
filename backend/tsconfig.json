@@ -21,17 +21,16 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@/controllers/*": ["src/controllers/*"],
-      "@/middleware/*": ["src/middleware/*"],
+      "@/controllers": ["src/controllers/index.ts"],
+      "@/middleware": ["src/middleware/*"],
       "@/models/*": ["src/models/*"],
-      "@/routes/*": ["src/routes/*"],
-      "@/services/*": ["src/services/*"],
+      "@/routes": ["src/routes/index.ts"],
+      "@/services": ["src/services/index.ts"],
       "@/dto": ["src/dto/index.ts"],
-      "@/dto/*": ["src/dto/*"],
       "@/schemas": ["src/schemas/index.ts"],
-      "@/schemas/*": ["src/schemas/*"],
       "@/utils/*": ["src/utils/*"],
-      "@/db/*": ["src/db/*"]
+      "@/db/*": ["src/db/*"],
+      "@/dao": ["src/dao/index.ts"],
     }
   },
   "include": ["src/**/*"],
